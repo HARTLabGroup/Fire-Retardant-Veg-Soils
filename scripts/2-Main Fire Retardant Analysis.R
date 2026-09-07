@@ -1960,91 +1960,162 @@ rm(NMDSord.sc);rm(ord.nmds.stress.sc);rm(mod);rm(preds);rm(newdata)
 
 
 #### Supplemental Table Species Frequencies ####
-summary.table(comm.sum.long)
-table(comm.sum.long$plot)
-sc.summ <- comm.sum.long[grep("SC",comm.sum.long$plot),]
-table(sc.summ$plot)
-sc.summ$plot <- substr(sc.summ$plot,1,3)
-sc.summ$plotavg <- ifelse(sc.summ$plotavg >0,1,0)
-sc.summ.agg <- aggregate(plotavg ~ code + plot, data = sc.summ, FUN = sum)
-table(sc.summ.agg$plot)
+summ.tab <- comm.sum.long
+summ.tab$duration <- sp.info$duration[match(summ.tab$code, sp.info$code)]
+summ.tab$status <- sp.info$status[match(summ.tab$code, sp.info$code)]
+summ.tab$FG <- sp.info$functional.group[match(summ.tab$code, sp.info$code)]
+summ.tab$name <- sp.info$species[match(summ.tab$code, sp.info$code)]
+summ.tab$plotavg <- 1
 
-`%notin%` <- purrr::negate(`%in%`)
-row_select <- 1:nrow(comm.sum.long)
-row_select %notin% grep("SC",comm.sum.long$plot)
-q.summ <- comm.sum.long[row_select %notin% grep("SC",comm.sum.long$plot),]
-table(q.summ$plot)
-q.summ$plot <- substr(q.summ$plot,1,2)
-q.summ$plotavg <- ifelse(q.summ$plotavg >0,1,0)
-q.summ.agg <- aggregate(plotavg ~ code + plot, data = q.summ, FUN = sum)
-table(q.summ.agg$plot)
+summ.tab <- summ.tab[complete.cases(summ.tab),]
+(summ.tab$plot %in% summ.tab$plot[grep("SC", summ.tab$plot)])
+summ.tab$site <- ifelse((summ.tab$plot %in% summ.tab$plot[grep("SC", summ.tab$plot)]), "SC", "Q")
 
-q.summ.agg <- q.summ.agg[order(q.summ.agg$plot, q.summ.agg$plotavg, decreasing = TRUE),]
-sc.summ.agg<- sc.summ.agg[order(sc.summ.agg$plot, sc.summ.agg$plotavg, decreasing = TRUE),]
+## splitting into SC (easier site)
+summ.tab.sc <- summ.tab[summ.tab$site == "SC",]
+table(summ.tab.sc$plot)
+## BURN
+## CON
+## FRL
 
-codes <- c(q.summ.agg$code[q.summ.agg$plot == "HC"][1:10],
-           q.summ.agg$code[q.summ.agg$plot == "HF"][1:10],
-           q.summ.agg$code[q.summ.agg$plot == "LC"][1:10],
-           q.summ.agg$code[q.summ.agg$plot == "LF"][1:10],
-           q.summ.agg$code[q.summ.agg$plot == "MC"][1:10],
-           q.summ.agg$code[q.summ.agg$plot == "MF"][1:10],
-           q.summ.agg$code[q.summ.agg$plot == "UC"][1:10],
-           q.summ.agg$code[q.summ.agg$plot == "UF"][1:10],
-           sc.summ.agg$code[sc.summ.agg$plot == "SCC"][1:10],
-           sc.summ.agg$code[sc.summ.agg$plot == "SCB"][1:10],
-           sc.summ.agg$code[sc.summ.agg$plot == "SCF"][1:10])
-length(unique(codes)) ## 47 species are the top 10 across all plots
+summ.tab.sc$trt <- NA
+summ.tab.sc$trt[grep("BURN",summ.tab.sc$plot)] <- "burn"
+summ.tab.sc$trt[grep("CON",summ.tab.sc$plot)] <- "con"
+summ.tab.sc$trt[grep("FRL",summ.tab.sc$plot)] <- "fr"
+table(summ.tab.sc$trt)
 
-freqs <- c(q.summ.agg$plotavg[q.summ.agg$plot == "HC"][1:10],
-           q.summ.agg$plotavg[q.summ.agg$plot == "HF"][1:10],
-           q.summ.agg$plotavg[q.summ.agg$plot == "LC"][1:10],
-           q.summ.agg$plotavg[q.summ.agg$plot == "LF"][1:10],
-           q.summ.agg$plotavg[q.summ.agg$plot == "MC"][1:10],
-           q.summ.agg$plotavg[q.summ.agg$plot == "MF"][1:10],
-           q.summ.agg$plotavg[q.summ.agg$plot == "UC"][1:10],
-           q.summ.agg$plotavg[q.summ.agg$plot == "UF"][1:10],
-           sc.summ.agg$plotavg[sc.summ.agg$plot == "SCC"][1:10],
-           sc.summ.agg$plotavg[sc.summ.agg$plot == "SCB"][1:10],
-           sc.summ.agg$plotavg[sc.summ.agg$plot == "SCF"][1:10])
-
-sites <- c(rep("Quarry", 80), rep("SC",30))
-trt <- c(rep("HC",10),
-         rep("HFR",10),
-         rep("LC",10),
-         rep("LFR",10),
-         rep("MC",10),
-         rep("MFR",10),
-         rep("UC",10),
-         rep("UFR",10),
-         rep("SCB",10),
-         rep("SCU",10),
-         rep("SCFR",10))
-
-summ.table.df <- data.frame(site = sites,
-                            trt = trt,
-                            species = codes,
-                            freq = freqs,
-                            duration = NA,
-                            status = NA,
-                            FG = NA)
-summ.table.df <- summ.table.df[order(summ.table.df$site,summ.table.df$trt,summ.table.df$freq, decreasing = TRUE),]
-summ.table.df$duration <- sp.info$duration[match(summ.table.df$species, sp.info$code)]
-summ.table.df$status <- sp.info$status[match(summ.table.df$species, sp.info$code)]
-summ.table.df$FG <- sp.info$functional.group[match(summ.table.df$species, sp.info$code)]
-
-summ.table.sp <- aggregate(freq ~ species, summ.table.df, sum)
-summ.table.sp$sites <- NA
-summ.table.sp$trs <- NA
-
-for(i in 1:nrow(summ.table.sp)){
-  summ.table.sp$sites[i] <- paste(unique(summ.table.df$site[summ.table.df$species == summ.table.sp$species[i]]), collapse = ", ")
-  summ.table.sp$trs[i] <- paste(unique(summ.table.df$trt[summ.table.df$species == summ.table.sp$species[i]]), collapse = ", ")
+trts <- c("burn","con", "fr")
+trts.list <- list()
+for(i in 1:3){
+  summ.tab.sc.i <- summ.tab.sc[summ.tab.sc$trt == trts[i],]
+  summ.tab.sc.i <- summ.tab.sc.i[!duplicated(summ.tab.sc.i$code),]
+  
+  summary.list <- list()
+  summary.list[[1]] <- trts[i]
+  summary.list[[2]] <- table(summ.tab.sc.i$duration)
+  dur.df <- aggregate(plotavg ~ name + duration, FUN = sum, data = summ.tab.sc[summ.tab.sc$trt == trts[i],])
+  dur.df <- dur.df[dur.df$duration == "annual",]
+  dur.df <- dur.df[rev(order(dur.df$plotavg))[c(1:10)], c(1,3)]
+  dur.df[,2] <- round(dur.df[,2]/(ifelse(trts[i] == "con", 17, 18)),3)
+  dur.vec <- paste0(dur.df[,1], sep = " (", dur.df[,2], sep = ")")
+  dur.vec <- paste0(dur.vec, collapse = ", ")
+  summary.list[[3]] <- dur.vec
+  
+  summary.list[[4]] <- table(summ.tab.sc.i$status)
+  dur.df <- aggregate(plotavg ~ name + status, FUN = sum, data = summ.tab.sc[summ.tab.sc$trt == trts[i],])
+  dur.df <- dur.df[dur.df$status == "I",]
+  dur.df <- dur.df[rev(order(dur.df$plotavg))[c(1:10)], c(1,3)]
+  dur.df[,2] <- round(dur.df[,2]/(ifelse(trts[i] == "con", 17, 18)),3)
+  dur.vec <- paste0(dur.df[,1], sep = " (", dur.df[,2], sep = ")")
+  dur.vec <- paste0(dur.vec, collapse = ", ")
+  summary.list[[5]] <- dur.vec
+  
+  summary.list[[6]] <- table(summ.tab.sc.i$FG)
+  dur.df <- aggregate(plotavg ~ name + FG, FUN = sum, data = summ.tab.sc[summ.tab.sc$trt == trts[i],])
+  dur.df <- dur.df[dur.df$FG == "gram",]
+  dur.df <- dur.df[rev(order(dur.df$plotavg))[c(1:10)], c(1,3)]
+  dur.df[,2] <- round(dur.df[,2]/(ifelse(trts[i] == "con", 17, 18)),3)
+  dur.vec <- paste0(dur.df[,1], sep = " (", dur.df[,2], sep = ")")
+  dur.vec <- paste0(dur.vec, collapse = ", ")
+  summary.list[[7]] <- dur.vec
+  dur.df <- aggregate(plotavg ~ name + FG, FUN = sum, data = summ.tab.sc[summ.tab.sc$trt == trts[i],])
+  dur.df <- dur.df[dur.df$FG == "forb",]
+  dur.df <- dur.df[rev(order(dur.df$plotavg))[c(1:10)], c(1,3)]
+  dur.df[,2] <- round(dur.df[,2]/(ifelse(trts[i] == "con", 17, 18)),3)
+  dur.vec <- paste0(dur.df[,1], sep = " (", dur.df[,2], sep = ")")
+  dur.vec <- paste0(dur.vec, collapse = ", ")
+  summary.list[[8]] <- dur.vec
+  
+  dur.df <- as.data.frame(table(summ.tab.sc$name[summ.tab.sc$duration == "annual" & summ.tab.sc$trt == trts[i] & summ.tab.sc$status == "I"]))
+  dur.df <- dur.df[rev(order(dur.df$Freq))[c(1:10)],]
+  dur.df[,2] <- round(dur.df[,2]/(ifelse(trts[i] == "con", 17, 18)),3)
+  dur.vec <- paste0(dur.df[,1], sep = " (", dur.df[,2], sep = ")")
+  dur.vec <- paste0(dur.vec, collapse = ", ")
+  summary.list[[9]] <- length(unique(summ.tab.sc$name[summ.tab.sc$duration == "annual" & summ.tab.sc$trt == trts[i] & summ.tab.sc$status == "I"]))
+  summary.list[[10]] <- dur.vec
+  
+  trts.list[[i]] <- summary.list
   
 }
 
-summ.table.sp <- summ.table.sp[order(summ.table.sp$freq, decreasing = TRUE),]
-summ.table.sp$duration <- sp.info$duration[match(summ.table.sp$species, sp.info$code)]
-summ.table.sp$status <- sp.info$status[match(summ.table.sp$species, sp.info$code)]
-summ.table.sp$FG <- sp.info$functional.group[match(summ.table.sp$species, sp.info$code)]
-summ.table.sp$name <- sp.info$species[match(summ.table.sp$species, sp.info$code)]
- # write.csv(summ.table.sp, "C:/Users/trevo/Dropbox/My PC (LAPTOP-GI7LHD15)/Documents/Carter/Research/Papers/In Progress/Fire Retardant Veg and Soils/Figures/SpeciesSummaryTable.csv")
+trts.list
+
+## splitting into Quarry
+summ.tab.q <- summ.tab[summ.tab$site == "Q",]
+table(summ.tab.q$plot)
+## UC
+## UFR
+## LC
+## LFR
+## MC
+## MFR
+## HC
+## HFR
+
+summ.tab.q$trt <- NA
+summ.tab.q$trt[grep("UC",summ.tab.q$plot)] <- "uc"
+summ.tab.q$trt[grep("UFR",summ.tab.q$plot)] <- "ufr"
+summ.tab.q$trt[grep("LC",summ.tab.q$plot)] <- "lc"
+summ.tab.q$trt[grep("LFR",summ.tab.q$plot)] <- "lfr"
+summ.tab.q$trt[grep("MC",summ.tab.q$plot)] <- "mc"
+summ.tab.q$trt[grep("MFR",summ.tab.q$plot)] <- "mfr"
+summ.tab.q$trt[grep("HC",summ.tab.q$plot)] <- "hc"
+summ.tab.q$trt[grep("HFR",summ.tab.q$plot)] <- "hfr"
+
+table(summ.tab.q$trt)
+
+trts <- c("uc","ufr", "lc", "lfr", "mc", "mfr", "hc", "hfr")
+trts.list <- list()
+for(i in 1:length(trts)){
+  summ.tab.q.i <- summ.tab.q[summ.tab.q$trt == trts[i],]
+  summ.tab.q.i <- summ.tab.q.i[!duplicated(summ.tab.q.i$code),]
+  
+  summary.list <- list()
+  
+  summary.list[[1]] <- trts[i]
+  summary.list[[2]] <- table(summ.tab.q.i$duration)
+  dur.df <- aggregate(plotavg ~ name + duration, FUN = sum, data = summ.tab.q[summ.tab.q$trt == trts[i],])
+  dur.df <- dur.df[dur.df$duration == "annual",]
+  dur.df <- dur.df[rev(order(dur.df$plotavg))[c(1:10)], c(1,3)]
+  dur.df[,2] <- round(dur.df[,2]/(ifelse(trts[i] == "mfr", 6, 7)),3)
+  dur.vec <- paste0(dur.df[,1], sep = " (", dur.df[,2], sep = ")")
+  dur.vec <- paste0(dur.vec, collapse = ", ")
+  summary.list[[3]] <- dur.vec
+  
+  summary.list[[4]] <- table(summ.tab.q.i$status)
+  dur.df <- aggregate(plotavg ~ name + status, FUN = sum, data = summ.tab.q[summ.tab.q$trt == trts[i],])
+  dur.df <- dur.df[dur.df$status == "I",]
+  dur.df <- dur.df[rev(order(dur.df$plotavg))[c(1:10)], c(1,3)]
+  dur.df[,2] <- round(dur.df[,2]/(ifelse(trts[i] == "mfr", 6, 7)),3)
+  dur.vec <- paste0(dur.df[,1], sep = " (", dur.df[,2], sep = ")")
+  dur.vec <- paste0(dur.vec, collapse = ", ")
+  summary.list[[5]] <- dur.vec
+  
+  summary.list[[6]] <- table(summ.tab.q.i$FG)
+  dur.df <- aggregate(plotavg ~ name + FG, FUN = sum, data = summ.tab.q[summ.tab.q$trt == trts[i],])
+  dur.df <- dur.df[dur.df$FG == "gram",]
+  dur.df <- dur.df[rev(order(dur.df$plotavg))[c(1:10)], c(1,3)]
+  dur.df[,2] <- round(dur.df[,2]/(ifelse(trts[i] == "mfr", 6, 7)),3)
+  dur.vec <- paste0(dur.df[,1], sep = " (", dur.df[,2], sep = ")")
+  dur.vec <- paste0(dur.vec, collapse = ", ")
+  summary.list[[7]] <- dur.vec
+  dur.df <- aggregate(plotavg ~ name + FG, FUN = sum, data = summ.tab.q[summ.tab.q$trt == trts[i],])
+  dur.df <- dur.df[dur.df$FG == "forb",]
+  dur.df <- dur.df[rev(order(dur.df$plotavg))[c(1:10)], c(1,3)]
+  dur.df[,2] <- round(dur.df[,2]/(ifelse(trts[i] == "mfr", 6, 7)),3)
+  dur.vec <- paste0(dur.df[,1], sep = " (", dur.df[,2], sep = ")")
+  dur.vec <- paste0(dur.vec, collapse = ", ")
+  summary.list[[8]] <- dur.vec
+  
+  dur.df <- as.data.frame(table(summ.tab.q$name[summ.tab.q$duration == "annual" & summ.tab.q$trt == trts[i] & summ.tab.q$status == "I"]))
+  dur.df <- dur.df[rev(order(dur.df$Freq))[c(1:10)],]
+  dur.df[,2] <- round(dur.df[,2]/(ifelse(trts[i] == "mfr", 6, 7)),3)
+  dur.vec <- paste0(dur.df[,1], sep = " (", dur.df[,2], sep = ")")
+  dur.vec <- paste0(dur.vec, collapse = ", ")
+  summary.list[[9]] <- length(unique(summ.tab.q$name[summ.tab.q$duration == "annual" & summ.tab.q$trt == trts[i] & summ.tab.q$status == "I"]))
+  summary.list[[10]] <- dur.vec
+  
+  trts.list[[i]] <- summary.list
+  
+}
+trts.list
