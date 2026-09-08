@@ -1035,6 +1035,26 @@ p2 <- sc.dat[,c("NH4", "NO3", "PO4", "plot.cov", "prop.inv.cov", "prop.ann.cov",
 ggsave(p2, filename=here("output", "figS6-correlation-matrix-StoneCanyon.jpg"), width = 5, height = 5, units = "in", dpi = 300)
 
 ###### FIGURE S6 - CONTRIBUTION OF NATIVES TO ANNUAL COVER #####
+com.dat <- comm.sum.long %>% 
+  left_join(., env[,c("plot", "site")], by = c("plot" = "plot")) %>% 
+  mutate(presence=1)
+
+exq <- expand.grid(com.dat %>% filter(site=="quarry") %>% pull(plot) %>% unique(), com.dat %>% filter(site=="quarry") %>% pull(code) %>% unique()) %>% 
+  set_colnames(c("plot", "code")) 
+
+comm.dat.full.q <- com.dat[com.dat$site=="quarry", c("plot", "code", "plotavg", "presence")] %>% 
+  right_join(., exq,  by=c("plot"="plot", "code"="code")) %>% 
+  mutate(plotavg=ifelse(is.na(plotavg), 0, plotavg),
+         presence=ifelse(is.na(presence), 0, presence)) 
+
+exsc <- expand.grid(com.dat %>% filter(site=="sc") %>% pull(plot) %>% unique(), com.dat %>% filter(site=="sc") %>% pull(code) %>% unique()) %>% 
+  set_colnames(c("plot", "code")) 
+
+comm.dat.full.sc <- com.dat[com.dat$site=="sc",c("plot", "code", "plotavg", "presence")] %>% 
+  right_join(., exsc,  by=c("plot"="plot", "code"="code")) %>% 
+  mutate(plotavg=ifelse(is.na(plotavg), 0, plotavg),
+         presence=ifelse(is.na(presence), 0, presence)) 
+
 dat.cover.annuals.fr <- bind_rows(comm.dat.full.q, comm.dat.full.sc) %>% 
   left_join(., env[,c("plot", "site", "trt", "sev")], by = c("plot" = "plot")) %>% 
   left_join(., sp.info, by=c("code"="code")) %>% 
@@ -1053,9 +1073,6 @@ dat.cover.annuals.fr <- bind_rows(comm.dat.full.q, comm.dat.full.sc) %>%
   scale_x_continuous(breaks = c(1, 2, 3, 4), labels = c("unburned", "low", "moderate", "high")) +
   scale_color_manual(values=c("gray25","red"), labels=c("control", "Fire retardant"))+theme(legend.position = "bottom", legend.title=element_blank())+xlab("burn severity")+ylab("contribution of natives to annual cover")
 ggsave(dat.cover.annuals.fr, filename=here("output", "figS6-prop-annual-cover-by-severity-treatment.jpg"), width = 5, height = 5, units = "in", dpi = 300)
-
-
-
 
 
 

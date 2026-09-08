@@ -3,9 +3,7 @@
 .RData
 .Ruserdata
 .positai
-
 # macOS files
 .DS_store
-
 # drafts
 docs
