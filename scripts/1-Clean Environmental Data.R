@@ -1,8 +1,9 @@
 #### Begin - Set Working Directory ####
 ## quick script for cleaning environmental data
-setwd("C:/Users/trevo/Dropbox/My PC (LAPTOP-GI7LHD15)/Documents/GitHub/Fire-Retartand-Veg-Soils") ## set working directory to the data folder
+library(here)
+setwd(here()) ## set working directory to the data folder
 
-
+## plot data 
 trtdata <- read.csv("./data/plotMetadata.csv")
 sc_env<- read.csv("./data/StoneCanyon_ENV.csv")
 quarry_env<- read.csv("./data/Quarry_ENV.csv")
