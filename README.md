@@ -1,9 +1,9 @@
-# *Code and Data for: Fire-Retardant Increases Post-Fire Soil N and P with Variable Effects on Post-Fire Vegetation One Year After Fire*
+# *Code and Data for: Unnamed Manuscript - Continued monitoring of Quarry fire*
 
 ## Description of the project
 
-This repository contains all code and data for *Fire-Retardant Increases Soil N and P with Variable Effects on Vegetation One Year After Fire*
-which investigates the effecs of fire-retardant ammendments at two wildfires in the Front Range of Colorado.
+This repository contains all code and data for *Unnamed Manuscript*
+which investigates the effects of fire-retardant amendments across a gradient of burn severity years 1-5 post fire in the Front Range of Colorado.
 
 ## Organization of the project
 
@@ -19,7 +19,7 @@ The project has the following structure:
     -   *1-Clean Environmental Data.R*: This code compiles environmental
         data.
 
-    -   *2-Main Fire Retardant Analysis.R*: The code for reproducing the main
+    -   *2-Main Analysis.R*: The code for reproducing the main
         results presented therein.
 
 -   data: This subdirectory contains field and laboratory data used in this project.
