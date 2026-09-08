@@ -3,7 +3,8 @@ library(dplyr) ## useful for transforming data
 library(stringr) ## needed to find patterns in character strings
 library(lme4) ## glmm package
 library(vegan) ## multidimentional vegetation analysis package
-setwd("C:/Users/trevo/Dropbox/My PC (LAPTOP-GI7LHD15)/Documents/GitHub/Fire-Retartand-Veg-Soils") ## set working directory to the main GitHub folder
+library(here)
+setwd(here()) ## set working directory to the main GitHub folder
 
 #### Reading in Data ####
 cover <- read.csv("./data/FieldData(comm).csv") ## field data on plant cover
