@@ -1,0 +1,69 @@
+This text document serves as the metadata for the manuscript: Fire-Retardant Increases Soil N and P with Variable Effects on Vegetation One Year After Fire 
+
+All data are stored on Zenodo: https://doi.org/10.5281/zenodo.23042894
+with associated code stored in GitHub: https://github.com/HARTLabGroup/Fire-Retardant-Veg-Soils  
+  
+The following data files are included as uploaded files:
+CarterFR_analysis.csv
+CarterFR_analysis.xlsx
+ENV_Data.csv, FieldData(comm).csv
+FieldData(rich).csv
+IntroducedStatusKey.csv 
+plotMetadata.csv
+Quarry_ENV.csv
+StoneCanyon_ENV.csv 
+
+Below is a description of each data file
+data: This subdirectory contains field and laboratory data used in this project.
+
+CarterFR_analysis.csv: Soil nutrient extractions from field collected soils with methods described in the manuscript. Units for all soil nutrient concentrations is provided in mg/g. The raw data (unformatted for R) are provided the .xlsx file with the same name.
+Variables
+Field ID: field plot name
+Location: field site name
+Burn Severity: dNBR burn severity
+Treatment: presence/absence of fire-retardant
+pH: soil pH
+DOC: Dissolved organic carbon
+TDN: Total disolved nitrogen
+Na: soil Na concentration (mg/g)
+NH4: soil NH4 concentration (mg/g)
+K: soil K concentration (mg/g)
+Mg: soil Mg concentration (mg/g)
+Ca: soil Ca concentration (mg/g)
+Cl: soil Cl concentration (mg/g)
+NO3: soil NO3 concentration (mg/g)
+PO4: soil PO4 concentration (mg/g)
+SO4: soil SO4 concentration (mg/g)
+
+ENV_Data.csv: Environmental data derived from the first script in GitHub repository and composed of Quarry_ENV.csv and StoneCanyon_ENV.csv with the same variable names.
+Variables
+plot: field plot name
+site: field site name
+sev: dNBR burn severity
+trt: presence/absence of fire-retardant
+elev: elevation (m)
+slope: slope (degrees)
+tpi: topographic position index
+aspect: aspect
+
+FieldData(comm).csv: Raw data for vegetative cover.
+Variables
+plot: field plot name
+transect: azimuth of transect within plot (0, 120, 240)
+subplot: location of Daubenmire quadrat along each transect
+code: six letter species code used to identify each species
+cov: percent cover of observation within the Duabenmire quadrat
+
+FieldData(rich).csv: Raw data for vegetative richness.
+Variables
+plot: field plot name
+code: six letter species code used to identify each species
+species: latin name that corresponds to each code
+
+IntroducedStatusKey.csv: Supplementary vegetation data from USDA Plants.
+Variables
+code: six letter species code used to identify each species
+species: latin name that corresponds to each code
+duration: life history (annual or perennial)
+functional group: functinoal group (shrub, forb, gram)
+status: native vs. introduced status (N, I)
