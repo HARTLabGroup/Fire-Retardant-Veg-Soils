@@ -7,6 +7,8 @@ library(piecewiseSEM) # for structural equation modeling
 library(semEffect) ## get direct and indirect effects from piecewise SEM
 library(MASS) # for negative binomial glm
 library(modelbased) 
+library(glmmTMB) ## for beta glm
+library(performance) ## for R2 of beta glm
 library(patchwork) # for combining ggplots
 library(here) # for file management
 library(ggplot2) # for plotting
@@ -296,7 +298,8 @@ dat <- env[,c("plot", "site", "sev", "trt")] %>%
   filter(!is.na(NH4)) %>% 
   # change treatment to binary and burn severity to numeric
   mutate(Treatment=ifelse(trt=="con", 0, 1), 
-         Burn.Severity=as.numeric(factor(sev, levels=c("unburn", "low", "mod", "high"), ordered=T)))
+         Burn.Severity = as.numeric(factor(sev, levels=c("unburn", "low", "mod", "high"), ordered=T)))
+str(dat)
 
 ##### QUARRY #####
 q.dat <- dat %>% 
@@ -334,45 +337,55 @@ plot(residuals(cov.mod.q))
 qqnorm(residuals(cov.mod.q), pch = 16, cex = .75, col = rgb(0,0,0,0.75))
 qqline(residuals(cov.mod.q), col = "red", lwd = 2, lty = 2) ## okay enough
 
+## ordered beta regressions
 ## Proportion invasive 
-icov.mod.q  <- lm(prop.inv.cov  ~  NO3 + NH4 + PO4 + Burn.Severity + Treatment, data = q.dat)
-summary(icov.mod.q )
+icov.mod.q  <- glmmTMB(prop.inv.cov  ~  NO3 + NH4 + PO4 + Burn.Severity + Treatment,data = q.dat, family = ordbeta())
+summary(icov.mod.q)
+r2(icov.mod.q)
 plot(residuals(icov.mod.q ))
 qqnorm(residuals(icov.mod.q), pch = 16, cex = .75, col = rgb(0,0,0,0.75))
 qqline(residuals(icov.mod.q), col = "red", lwd = 2, lty = 2) ## okay enough
+icov.mod.q  <- lm(prop.inv.cov  ~  NO3 + NH4 + PO4 + Burn.Severity + Treatment,data = q.dat)
 
 ## Proportion annual
-acov.mod.q  <- lm(prop.ann.cov ~  NO3 + NH4 + PO4 + Burn.Severity + Treatment, data = q.dat)
+acov.mod.q  <- glmmTMB(prop.ann.cov ~  NO3 + NH4 + PO4 + Burn.Severity + Treatment, data = q.dat, family = ordbeta())
 summary(acov.mod.q )
+r2(acov.mod.q)
 plot(residuals(acov.mod.q ))
 qqnorm(residuals(acov.mod.q), pch = 16, cex = .75, col = rgb(0,0,0,0.75))
 qqline(residuals(acov.mod.q), col = "red", lwd = 2, lty = 2) ## okay enough
+acov.mod.q  <- lm(prop.ann.cov ~  NO3 + NH4 + PO4 + Burn.Severity + Treatment, data = q.dat)
 
 ###### RICHNESS #####
 ## Total richness
 rich.mod.q <- glm.nb(plot.rich ~  NO3 + NH4 + PO4 +  Burn.Severity + Treatment, data = q.dat) # mean(dat$plot.rich) = 20; var(dat$plot.rich) = 54 
 summary(rich.mod.q)
+r2(rich.mod.q)
 plot(residuals(rich.mod.q ))
 qqnorm(residuals(rich.mod.q), pch = 16, cex = .75, col = rgb(0,0,0,0.75))
 qqline(residuals(rich.mod.q), col = "red", lwd = 2, lty = 2) ## okay enough
 
 ## Proportion invasive richnes
-irich.mod.q <- lm(prop.inv.sp~  NO3 + NH4 + PO4 + Burn.Severity + Treatment, data = q.dat) 
+irich.mod.q <- glmmTMB(prop.inv.sp~  NO3 + NH4 + PO4 + Burn.Severity + Treatment, data = q.dat, family = ordbeta()) 
 summary(irich.mod.q)
+r2(irich.mod.q)
 plot(residuals(irich.mod.q ))
 qqnorm(residuals(irich.mod.q), pch = 16, cex = .75, col = rgb(0,0,0,0.75))
 qqline(residuals(irich.mod.q), col = "red", lwd = 2, lty = 2) ## okay enough
+irich.mod.q <- lm(prop.inv.sp~  NO3 + NH4 + PO4 + Burn.Severity + Treatment, data = q.dat) 
 
 ## Proportion annual richness
-arich.mod.q <- lm(prop.ann.sp~  NO3 + NH4 + PO4 + Burn.Severity + Treatment, data = q.dat) 
+arich.mod.q <- glmmTMB(prop.ann.sp~NO3 + NH4 + PO4 + Burn.Severity + Treatment, data = q.dat, family = ordbeta()) 
 summary(arich.mod.q)
+r2(arich.mod.q)
 plot(residuals(arich.mod.q ))
 qqnorm(residuals(arich.mod.q), pch = 16, cex = .75, col = rgb(0,0,0,0.75))
 qqline(residuals(arich.mod.q), col = "red", lwd = 2, lty = 2) ## okay enough
+arich.mod.q <- lm(prop.ann.sp~NO3 + NH4 + PO4 + Burn.Severity + Treatment, data = q.dat) 
 
 ###### PIECEWISE SEM BY PLANT RESPONSE #####
 ## total cover
-modList.plot.cov <- psem(NH4.mod.q, NO3.mod.q, P.mod.q, cov.mod.q, data =q.dat)
+modList.plot.cov <- psem(NH4.mod.q, NO3.mod.q, P.mod.q, cov.mod.q, data = q.dat)
 summary(modList.plot.cov)
 coef.summary <- summary(modList.plot.cov)$coefficients
 di.effect <- get_effect(modList.plot.cov, target="plot.cov")$effect_long %>% mutate(Response="total cover", site="Quarry")
@@ -458,37 +471,45 @@ qqnorm(residuals(cov.mod.sc), pch = 16, cex = .75, col = rgb(0,0,0,0.75))
 qqline(residuals(cov.mod.sc), col = "red", lwd = 2, lty = 2) ## okay enough
 
 ## Proportion invasive 
-icov.mod.sc  <- lm(prop.inv.cov  ~  NO3 + NH4 + Burn.Severity + Treatment , data = sc.dat) 
-summary(icov.mod.sc )
+icov.mod.sc  <- glmmTMB(prop.inv.cov  ~  NO3 + NH4 + Burn.Severity + Treatment , data = sc.dat, family = ordbeta()) 
+summary(icov.mod.sc)
+r2(icov.mod.sc)
 plot(residuals(icov.mod.sc ))
 qqnorm(residuals(icov.mod.sc), pch = 16, cex = .75, col = rgb(0,0,0,0.75))
 qqline(residuals(icov.mod.sc), col = "red", lwd = 2, lty = 2) ## okay enough
+icov.mod.sc  <- lm(prop.inv.cov  ~  NO3 + NH4 + Burn.Severity + Treatment , data = sc.dat) 
 
 ## Proportion annual
-acov.mod.sc  <- lm(prop.ann.cov  ~  NO3 + NH4  + Burn.Severity + Treatment, data = sc.dat)
+acov.mod.sc  <- glmmTMB(prop.ann.cov  ~  NO3 + NH4  + Burn.Severity + Treatment, data = sc.dat, family = ordbeta())
 summary(acov.mod.sc )
+r2(acov.mod.sc)
 plot(residuals(acov.mod.sc ))
 qqnorm(residuals(acov.mod.sc), pch = 16, cex = .75, col = rgb(0,0,0,0.75))
 qqline(residuals(acov.mod.sc), col = "red", lwd = 2, lty = 2) ## okay enough
+acov.mod.sc  <- lm(prop.ann.cov  ~  NO3 + NH4  + Burn.Severity + Treatment, data = sc.dat)
 
 ###### RICHNESS #####
 ## Total richness
 rich.mod.sc <- glm.nb(plot.rich ~  NO3 + NH4 +  Burn.Severity  + Treatment, data = sc.dat) # mean(dat$plot.rich) = 20; var(dat$plot.rich) = 54 
 summary(rich.mod.sc)
+r2(rich.mod.sc)
 plot(residuals(rich.mod.sc ))
 qqnorm(residuals(rich.mod.sc), pch = 16, cex = .75, col = rgb(0,0,0,0.75))
 qqline(residuals(rich.mod.sc), col = "red", lwd = 2, lty = 2) ## okay enough
 
-## Proportion invasive richnes
-irich.mod.sc <- lm(prop.inv.sp~  NO3 + NH4  + Burn.Severity + Treatment, data = sc.dat) 
+## Proportion invasive richness
+irich.mod.sc <- glmmTMB(prop.inv.sp~  NO3 + NH4  + Burn.Severity + Treatment, data = sc.dat, family = ordbeta()) 
 summary(irich.mod.sc)
+r2(irich.mod.sc)
 plot(residuals(irich.mod.sc ))
 qqnorm(residuals(irich.mod.sc), pch = 16, cex = .75, col = rgb(0,0,0,0.75))
 qqline(residuals(irich.mod.sc), col = "red", lwd = 2, lty = 2) ## okay enough
+irich.mod.sc <- lm(prop.inv.sp~  NO3 + NH4  + Burn.Severity + Treatment, data = sc.dat) 
 
 ## Proportion annual richness
-arich.mod.sc <- lm(prop.ann.sp~  NO3 + NH4  + Burn.Severity  + Treatment, data = sc.dat) 
+arich.mod.sc <- glmmTMB(prop.ann.sp~  NO3 + NH4  + Burn.Severity  + Treatment, data = sc.dat, family = ordbeta()) 
 summary(arich.mod.sc)
+r2(arich.mod.sc)
 plot(residuals(arich.mod.sc ))
 qqnorm(residuals(arich.mod.sc), pch = 16, cex = .75, col = rgb(0,0,0,0.75))
 qqline(residuals(arich.mod.sc), col = "red", lwd = 2, lty = 2) ## okay enough
